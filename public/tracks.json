@@ -1,0 +1,78 @@
+[
+  {
+    "name": "The 1st one",
+    "description": "This is the 1st track I have made for this game",
+    "data": {
+      "friction": 1,
+      "steering": true,
+      "size": {
+        "x": 400,
+        "y": 200
+      },
+      "scale": 1,
+      "method": 0,
+      "walls": [
+        {
+          "x1": 0,
+          "y1": 100,
+          "x2": 100,
+          "y2": 0
+        },
+        {
+          "x1": 100,
+          "y1": 0,
+          "x2": 300,
+          "y2": 0
+        },
+        {
+          "x1": 300,
+          "y1": 0,
+          "x2": 400,
+          "y2": 100
+        },
+        {
+          "x1": 400,
+          "y1": 100,
+          "x2": 300,
+          "y2": 200
+        },
+        {
+          "x1": 300,
+          "y1": 200,
+          "x2": 100,
+          "y2": 200
+        },
+        {
+          "x1": 100,
+          "y1": 200,
+          "x2": 0,
+          "y2": 100
+        },
+        {
+          "x1": 125,
+          "y1": 100,
+          "x2": 275,
+          "y2": 100
+        }
+      ],
+      "startPos": {
+        "x": 175,
+        "y": 50,
+        "a": 0
+      },
+      "startLine": {
+        "x1": 200,
+        "y1": 0,
+        "x2": 200,
+        "y2": 100
+      }
+    }
+  },
+  {
+    "name": "Perhaps a track?",
+    "description": "Unfinished second track",
+    "data": {
+      "method": -1
+    }
+  }
+]

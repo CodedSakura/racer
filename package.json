@@ -1,8 +1,10 @@
 {
   "name": "racer",
-  "version": "0.1.0",
+  "version": "a0.1",
   "private": true,
+  "homepage": "http://thephisics101.eu/racer/",
   "dependencies": {
+    "node-sass": "^4.12.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.0"

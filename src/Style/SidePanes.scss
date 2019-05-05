@@ -1,0 +1,18 @@
+@import "Colors";
+
+.pane-right, .pane-left {
+  width: 200px;
+}
+.pane:not(.container):not(.game) {
+  padding: 4px 8px;
+}
+
+.pane-left { border-right: $border; }
+.pane-right { border-left: $border; }
+.pane-left > :first-child { border-bottom: $border; }
+
+.mobile {
+  .pane-right, .pane-left { width: unquote("calc(100% - 16px)"); }
+  .pane-left, .pane-right, .pane-left > :first-child { border: none; }
+  .tracks { padding-bottom: 32px !important; }
+}

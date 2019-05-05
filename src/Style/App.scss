@@ -1,0 +1,47 @@
+@import "Colors";
+
+body {
+  background-color: $background;
+  color: $foreground;
+  margin: 0;
+}
+
+.main {
+  min-height: 100vh;
+  width: 100vw;
+}
+
+.container {
+  display: flex;
+
+  &.cont-col {
+    flex-direction: column;
+  }
+  &.fill > * {
+    flex-grow: 1;
+  }
+}
+
+
+.pane {
+  &.pane-left {
+    order: 1;
+  }
+  &.pane-center {
+    order: 2;
+    flex-grow: 1;
+  }
+  &.pane-right {
+    order: 3;
+  }
+}
+
+.mobile {
+  flex-direction: column;
+  width: unquote("calc(100vw - 18px)");
+  .pane {
+    &.pane-left   { order: 3; }
+    &.pane-center { order: 1; }
+    &.pane-right  { order: 2; }
+  }
+}
