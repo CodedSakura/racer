@@ -79,7 +79,7 @@
     "description": "Unfinished second track",
     "data": {
       "friction": 1,
-      "steering": true,
+      "steering": false,
       "size": {
         "x": 400,
         "y": 200

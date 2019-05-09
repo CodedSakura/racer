@@ -29,7 +29,7 @@ export const Stats = props => {
   const {className, ...rest} = props;
   return <div className={classMap("stats pane pane-right", className)} {...rest}>
     <h2>Stats</h2>
-    <div>Version: a0.3</div>
+    <div>Version: a0.4.0</div>
     <div>Debug: {debug.toString()}</div>
   </div>;
 };

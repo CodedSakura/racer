@@ -8,6 +8,15 @@ export const classMap = (staticClasses, ...classes) => {
   return staticClasses;
 };
 
+export const deg = rad => rad/180*Math.PI;
+export const rad = deg => deg/Math.PI*180;
+
+export const MDeg = {
+  sin: i => Math.sin(rad(i)),
+  cos: i => Math.cos(rad(i)),
+  tan: i => Math.tan(rad(i))
+};
+
 export const trackFile = "tracks.json";
 
 export const framerate = 30;

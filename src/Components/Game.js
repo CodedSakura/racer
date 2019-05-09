@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import "../Style/Game.scss";
-import {classMap, debug, framerate, imageSize, playerSize} from "../data";
+import {classMap, debug, framerate, imageSize, MDeg, playerSize} from "../data";
 import playerSprite from "../Style/Assets/player.svg";
 
 class Game extends Component {
@@ -35,9 +35,8 @@ class Game extends Component {
 
   initPlayer = () => {
     if (!this.props.track.data.startPos) return;
-    const a = this.props.track.data.startPos.a / 180 * Math.PI;
-    this.setState({player: {...this.props.track.data.startPos, a: a}, paused: false}, this.frame);
-    this.playerVector.a = a;
+    this.setState({player: {...this.props.track.data.startPos}, paused: false}, this.frame);
+    // this.playerVector.a = a;
   };
 
   keyEvent = e => {
@@ -73,12 +72,22 @@ class Game extends Component {
             if (["KeyW", "KeyS"].some(v => this.activeKeys.has(v)))
               v.l += (this.activeKeys.has("KeyS") ? -1 : 1) * 0.1;
             if (["KeyD", "KeyA"].some(v => this.activeKeys.has(v)))
-              v.a += (this.activeKeys.has("KeyA") ? -1 : 1) * (steering ? v.l/5 * 0.1 : 0.05);
+              v.a += (this.activeKeys.has("KeyA") ? -1 : 1) * (steering ? v.l/5 * 0.1 : 0.1);
           }
 
-          player.x += Math.cos(v.a) * v.l * scale;
-          player.y += Math.sin(v.a) * v.l * scale;
-          player.a = v.a * scale;
+          if (Math.abs(v.l) > 0.05) v.l -= 0.05 * Math.sign(v.l) * friction;
+          else v.l = 0;
+          if (Math.abs(v.a) > 0.05) v.a -= 0.05 * Math.sign(v.a);
+          else v.a = 0;
+
+          v.l = Math.max(-5, Math.min(7.5, v.l));
+          v.a = Math.max(-20, Math.min(20, v.a));
+
+          player.a += v.a;
+          player.x += MDeg.cos(player.a) * v.l * scale;
+          player.y += MDeg.sin(player.a) * v.l * scale;
+
+          console.log(v.a, player.a);
 
           const ps = (([[x1, y1], [x2, y2]]) => [
             {x:  x1, y:  y1}, // br
@@ -89,8 +98,8 @@ class Game extends Component {
             [-x + y / 2, y + x / 2],
             [ x + y / 2,-y + x / 2]
           ])([
-            playerSize.w / 2 * scale * Math.cos(v.a),
-            playerSize.w / 2 * scale * Math.cos(v.a + Math.PI / 2)
+            playerSize.w / 2 * scale * MDeg.cos(player.a),
+            playerSize.w / 2 * scale * MDeg.cos(player.a + Math.PI / 2)
           ]));
           for (const pv of ps) {
             if (
@@ -103,9 +112,7 @@ class Game extends Component {
               break;
             }
           }
-          if (Math.abs(v.l) > 0.05) v.l -= 0.05 * Math.sign(v.l) * friction;
-          else v.l = 0;
-          v.l = Math.max(-5, Math.min(7.5, v.l));
+
           return {player: player};
         case 1:
           return {};
@@ -125,7 +132,6 @@ class Game extends Component {
           case 0:
             const {data: {size, scale = 1, walls, startLine}} = track;
             const {player} = this.state;
-            const v = this.playerVector;
             const ps = (([[x1, y1], [x2, y2]]) => [
               {x:  x1, y:  y1}, // br
               {x:  x2, y:  y2}, // fl,
@@ -135,8 +141,8 @@ class Game extends Component {
               [-x + y / 2, y + x / 2],
               [ x + y / 2,-y + x / 2]
             ])([
-              playerSize.w / 2 * scale * Math.cos(v.a),
-              playerSize.w / 2 * scale * Math.cos(v.a + Math.PI / 2)
+              playerSize.w / 2 * scale * MDeg.cos(player.a),
+              playerSize.w / 2 * scale * MDeg.cos(player.a + Math.PI / 2)
             ]));
             return <svg viewBox={`${-scale} ${-scale} ${size.x + 2 * scale} ${size.y + 2 * scale}`}>
               <rect width="100%" height="100%" fill="rgba(255,255,255,0.2)"/>
@@ -144,7 +150,7 @@ class Game extends Component {
               {/*<line x2={v.l*10} stroke="yellow" transform={`translate(${player.x} ${player.y}) rotate(${v.a*180/Math.PI})`}/>*/}
               <image
                 x={-imageSize.w /2 *scale} y={-imageSize.h /2 *scale} height={imageSize.h * scale} xlinkHref={playerSprite}
-                transform={`translate(${player.x} ${player.y}) rotate(${player.a*180/Math.PI/scale})`}
+                transform={`translate(${player.x} ${player.y}) rotate(${player.a})`}
               />
               {debug ? <g transform={`translate(${player.x} ${player.y})`} fill="red">
                 <circle r={scale} cx={ps[0].x} cy={ps[0].y} fill={"#FF00FF"}/>
