@@ -59,35 +59,33 @@ class Game extends Component {
     if (this.state.paused) return;
     this.setState(s => {
       const {player, gamepad} = s;
-      const {data: {method = 1, friction = 1, steering = true, size, scale = 1}} = this.props.track;
+      const {data: {method = -1, friction = 1, steering = true, size, scale = 1}} = this.props.track;
       const v = this.playerVector;
       switch (method) {
         case 0:
           if (this.props.gamepad && gamepad > 0) {
             let {axes: [y1], buttons: [,,,,,, {value: lt}, {value: rt}]} = navigator.getGamepads()[0];
             if (Math.abs(y1) < 0.1) y1 = 0; if (Math.abs(y1) > 0.9) y1 = Math.sign(y1);
-            v.a += (steering ? v.l/5 * 0.1 : 0.05) * y1;
+            v.a += y1;
             v.l -= 0.1 * (lt - rt);
           } else if (this.activeKeys.size > 0) {
             if (["KeyW", "KeyS"].some(v => this.activeKeys.has(v)))
               v.l += (this.activeKeys.has("KeyS") ? -1 : 1) * 0.1;
             if (["KeyD", "KeyA"].some(v => this.activeKeys.has(v)))
-              v.a += (this.activeKeys.has("KeyA") ? -1 : 1) * (steering ? v.l/5 * 0.1 : 0.1);
+              v.a += (this.activeKeys.has("KeyA") ? -1 : 1) * 1.5;
           }
 
           if (Math.abs(v.l) > 0.05) v.l -= 0.05 * Math.sign(v.l) * friction;
           else v.l = 0;
-          if (Math.abs(v.a) > 0.05) v.a -= 0.05 * Math.sign(v.a);
+          if (Math.abs(v.a) > 1) v.a -= 1 * Math.sign(v.a);
           else v.a = 0;
 
           v.l = Math.max(-5, Math.min(7.5, v.l));
-          v.a = Math.max(-20, Math.min(20, v.a));
+          v.a = Math.max(-10, Math.min(10, v.a));
 
           player.a += v.a;
           player.x += MDeg.cos(player.a) * v.l * scale;
           player.y += MDeg.sin(player.a) * v.l * scale;
-
-          console.log(v.a, player.a);
 
           const ps = (([[x1, y1], [x2, y2]]) => [
             {x:  x1, y:  y1}, // br
@@ -99,7 +97,7 @@ class Game extends Component {
             [ x + y / 2,-y + x / 2]
           ])([
             playerSize.w / 2 * scale * MDeg.cos(player.a),
-            playerSize.w / 2 * scale * MDeg.cos(player.a + Math.PI / 2)
+            playerSize.w / 2 * scale * MDeg.cos(player.a + 90)
           ]));
           for (const pv of ps) {
             if (
@@ -142,12 +140,13 @@ class Game extends Component {
               [ x + y / 2,-y + x / 2]
             ])([
               playerSize.w / 2 * scale * MDeg.cos(player.a),
-              playerSize.w / 2 * scale * MDeg.cos(player.a + Math.PI / 2)
+              playerSize.w / 2 * scale * MDeg.cos(player.a + 90)
             ]));
             return <svg viewBox={`${-scale} ${-scale} ${size.x + 2 * scale} ${size.y + 2 * scale}`}>
               <rect width="100%" height="100%" fill="rgba(255,255,255,0.2)"/>
               <line {...startLine} stroke="green" strokeWidth={2 * scale}/>
-              {/*<line x2={v.l*10} stroke="yellow" transform={`translate(${player.x} ${player.y}) rotate(${v.a*180/Math.PI})`}/>*/}
+              <line x2={this.playerVector.l*10*scale} stroke="yellow" strokeWidth={scale}
+                    transform={`translate(${player.x} ${player.y}) rotate(${player.a}) rotate(${this.playerVector.a})`}/>
               <image
                 x={-imageSize.w /2 *scale} y={-imageSize.h /2 *scale} height={imageSize.h * scale} xlinkHref={playerSprite}
                 transform={`translate(${player.x} ${player.y}) rotate(${player.a})`}

@@ -8,8 +8,8 @@ export const classMap = (staticClasses, ...classes) => {
   return staticClasses;
 };
 
-export const deg = rad => rad/180*Math.PI;
-export const rad = deg => deg/Math.PI*180;
+export const rad = deg => deg/180*Math.PI;
+export const deg = rad => rad/Math.PI*180;
 
 export const MDeg = {
   sin: i => Math.sin(rad(i)),
