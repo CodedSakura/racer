@@ -78,7 +78,7 @@
     "name": "Perhaps a track?",
     "description": "Unfinished second track",
     "data": {
-      "friction": 1,
+      "friction": 0.1,
       "steering": false,
       "size": {
         "x": 400,
