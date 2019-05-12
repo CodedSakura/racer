@@ -1,7 +1,8 @@
 import React, {Component} from "react";
 import "../Style/Game.scss";
-import {classMap, debug, framerate, imageSize, MDeg, playerSize} from "../data";
+import {classMap, framerate, imageSize, MDeg, playerSize} from "../utils";
 import playerSprite from "../Style/Assets/player.svg";
+import {withContext} from "./Context";
 
 class Game extends Component {
   activeKeys = new Set();
@@ -35,7 +36,7 @@ class Game extends Component {
   //endregion
 
   initPlayer = () => {
-    if (!this.props.track.data.startPos) return;
+    if (!this.props.track) return;
     this.setState({player: {...this.props.track.data.startPos}, paused: false}, this.frame);
     // this.playerVector.a = a;
   };
@@ -60,7 +61,7 @@ class Game extends Component {
     if (this.state.paused) return;
     this.setState(s => {
       const {player, gamepad} = s;
-      const {data: {method = -1, friction = 1, steering = true, size, scale = 1}} = this.props.track;
+      const {data: {method = -1, friction = 1, size, scale = 1}} = this.props.track;
       const v = this.playerVector;
       switch (method) {
         case 0:
@@ -139,7 +140,7 @@ class Game extends Component {
   };
 
   render() {
-    const {track, className, gamepad, ...rest} = this.props;
+    const {track, className, gamepad, context: {debug}, ...rest} = this.props;
     return <div className={classMap("pane pane-center game", className)} {...rest}>
       {(() => {
         if (!track) return "No track selected";
@@ -175,7 +176,7 @@ class Game extends Component {
             return <svg viewBox={`${-scale} ${-scale} ${size.x + 2 * scale} ${size.y + 2 * scale}`}>
               <rect width="100%" height="100%" fill="rgba(255,255,255,0.2)"/>
               <line {...startLine} stroke="green" strokeWidth={2 * scale}/>
-              <line x2={this.playerVector.l*10*scale} stroke="yellow" strokeWidth={scale} transform={`translate(${player.x} ${player.y}) rotate(${player.a}) rotate(${this.playerVector.a})`}/>
+              {debug ? <line x2={this.playerVector.l*10*scale} stroke="yellow" strokeWidth={scale} transform={`translate(${player.x} ${player.y}) rotate(${player.a}) rotate(${this.playerVector.a})`}/> : undefined}
               {gamepad}
               <image
                 x={-imageSize.w /2 *scale} y={-imageSize.h /2 *scale} height={imageSize.h * scale} xlinkHref={playerSprite}
@@ -199,4 +200,4 @@ class Game extends Component {
   }
 }
 
-export default Game;
+export default withContext(Game);

@@ -1,14 +1,16 @@
 import React, {Component} from "react";
-import {Options, Stats, Tracks} from "../Components/SidePanes";
+import {Cars, Options, Stats, Tracks} from "../Components/SidePanes";
 import Game from "../Components/Game";
 import "../Style/App.scss";
-import {breakpoints, classMap, trackFile} from "../data";
+import {breakpoints, classMap, debug, trackFile} from "../utils";
+import {Context} from "../Components/Context";
 
 class App extends Component {
   state = {
     gridSize: undefined, big: undefined,
     tracks: [], track: 0,
-    gamepad: true
+    gamepad: true,
+    debug: debug
   };
 
   componentWillMount() {
@@ -29,8 +31,7 @@ class App extends Component {
 
   resizeEvent = () => {
     let i = 0, w = window.innerWidth;
-    // noinspection StatementWithEmptyBodyJS
-    for (; i < breakpoints.length && w >= breakpoints[i].min; i++); i--;
+    while (i < breakpoints.length && w >= breakpoints[i].min) i++; i--;
     if (this.state.big === undefined) {
       this.setState({gridSize: breakpoints[i].name, big: breakpoints[i].name !== "lg"});
     } else {
@@ -39,19 +40,23 @@ class App extends Component {
   };
 
   render() {
-    return <div className={classMap("main container", this.state.big && "mobile")}>
-      <div className="pane pane-left container cont-col fill">
-        <Options
-          toggleSize={() => {
-            this.setState(s => ({big: !s.big}));
-          }} size={this.state.big}
-          toggleGamepad={() => this.setState(s => ({gamepad: !s.gamepad}))} gamepad={this.state.gamepad}
-        />
-        <Tracks tracks={this.state.tracks} setTrack={n => this.setState({track: n})}/>
+    return <Context.Provider value={this.state}>
+      <div className={classMap("main container", this.state.big && "mobile")}>
+        <div className="pane pane-left container cont-col fill">
+          <Tracks tracks={this.state.tracks} setTrack={n => this.setState({track: n})}/>
+          <Cars/>
+        </div>
+        <Game track={this.state.tracks[this.state.track]} gamepad={this.state.gamepad}/>
+        <div className="pane pane-right container cont-col fill">
+          <Stats/>
+          <Options
+            toggleSize={() => this.setState(s => ({big: !s.big}))}
+            toggleGamepad={() => this.setState(s => ({gamepad: !s.gamepad}))}
+            toggleDebug={() => this.setState(s => ({debug: !s.debug}))}
+          />
+        </div>
       </div>
-      <Game track={this.state.tracks[this.state.track]} gamepad={this.state.gamepad}/>
-      <Stats/>
-    </div>;
+    </Context.Provider>;
   }
 }
 

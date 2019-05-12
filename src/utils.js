@@ -5,7 +5,7 @@ export const breakpoints = [
 
 export const classMap = (staticClasses, ...classes) => {
   for (const c of classes) if (c) staticClasses += " " + c.trim();
-  return staticClasses;
+  return [...new Set(staticClasses.split(" "))].join(" ");
 };
 
 export const rad = deg => deg/180*Math.PI;
