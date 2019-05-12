@@ -1,4 +1,6 @@
 $background: black;
 $foreground: white;
 
-$border: 2px solid transparentize(white, .75);
+$primary: white;
+
+$border: 2px solid rgba($primary, .25);

@@ -5,7 +5,16 @@ export const breakpoints = [
 
 export const classMap = (staticClasses, ...classes) => {
   for (const c of classes) if (c) staticClasses += " " + c.trim();
-  return staticClasses;
+  return [...new Set(staticClasses.split(" "))].join(" ");
+};
+
+export const rad = deg => deg/180*Math.PI;
+export const deg = rad => rad/Math.PI*180;
+
+export const MDeg = {
+  sin: i => Math.sin(rad(i)),
+  cos: i => Math.cos(rad(i)),
+  tan: i => Math.tan(rad(i))
 };
 
 export const trackFile = "tracks.json";

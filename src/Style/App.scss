@@ -18,7 +18,7 @@ body {
     flex-direction: column;
   }
   &.fill > * {
-    flex-grow: 1;
+    flex: 1 1 0;
   }
 }
 
@@ -38,7 +38,6 @@ body {
 
 .mobile {
   flex-direction: column;
-  width: unquote("calc(100vw - 18px)");
   .pane {
     &.pane-left   { order: 3; }
     &.pane-center { order: 1; }

@@ -78,8 +78,8 @@
     "name": "Perhaps a track?",
     "description": "Unfinished second track",
     "data": {
-      "friction": 1,
-      "steering": true,
+      "friction": 0.1,
+      "steering": false,
       "size": {
         "x": 400,
         "y": 200

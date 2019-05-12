@@ -4,15 +4,61 @@
   width: 200px;
 }
 .pane:not(.container):not(.game) {
-  padding: 4px 8px;
+  padding: 4px 0;
+  h2 {
+    padding: 0 8px;
+  }
+  > div:not(.entry-cont) {
+    padding: 0 8px;
+  }
 }
 
 .pane-left { border-right: $border; }
 .pane-right { border-left: $border; }
-.pane-left > :first-child { border-bottom: $border; }
+.pane-left, .pane-right {
+  > :not(:last-child) { border-bottom: $border; }
+}
+
+.entry-cont {
+  //overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  > div {
+    background: rgba($primary, .25);
+    margin: 4px 0;
+    padding: 4px 8px;
+    width: 184px;
+    cursor: default;
+    user-select: none;
+    &:hover {
+      background: rgba($primary, .5);
+    }
+    &:active {
+      background: rgba($primary, .4);
+    }
+    .align-right {
+      float: right;
+    }
+  }
+}
 
 .mobile {
-  .pane-right, .pane-left { width: unquote("calc(100% - 16px)"); }
-  .pane-left, .pane-right, .pane-left > :first-child { border: none; }
-  .tracks { padding-bottom: 32px !important; }
+  .pane-left, .pane-right {
+    width: 100%;
+    border: none;
+    .pane {
+      border-bottom: $border;
+      padding-bottom: 12px;
+    }
+  }
+  .pane-left > :last-child {
+    padding-bottom: 36px;
+    border: none;
+  }
+  .entry-cont {
+    flex-direction: row;
+    > div {
+      margin: 0 4px;
+    }
+  }
 }
