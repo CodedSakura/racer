@@ -31,7 +31,9 @@ export const Tracks = withContext(props => {
   const {context: {data: {tracks = []}}, setTrack = () => {}, className = "", ...rest} = props;
   return <div className={classMap("tracks pane", className)} {...rest}>
     <h2>Tracks</h2>
-    {tracks.length > 0 ? <div className="entry-cont">{tracks.map((v, k) => <div key={k} onClick={() => setTrack(k)}>{v.name}</div>)}</div> : <div>No tracks found</div>}
+    {tracks.length > 0 ? <div className="entry-cont">{tracks.map((v, k) =>
+      <div key={k} onClick={() => setTrack(k)}>{v.name || `#${k+1}`}{v.description ? <div className="entry-desc">{v.description}</div> : undefined}</div>)}
+    </div> : <div>No tracks found</div>}
   </div>;
 });
 
@@ -39,7 +41,9 @@ export const Cars = withContext(props => {
   const {context: {data: {cars = []}}, setCar = () => {}, className = "", ...rest} = props;
   return <div className={classMap("cars pane", className)} {...rest}>
     <h2>Cars</h2>
-    {cars.length > 0 ? <div className="entry-cont">{cars.map((v, k) => <div key={k} onClick={() => setCar(k)}>{v.name}</div>)}</div> : <div>No cars found</div>}
+    {cars.length > 0 ? <div className="entry-cont">{cars.map((v, k) =>
+      <div key={k} onClick={() => setCar(k)}>{v.name || `#${k+1}`}{v.description ? <div className="entry-desc">{v.description}</div> : undefined}</div>)}
+    </div> : <div>No cars found</div>}
   </div>;
 });
 
@@ -47,7 +51,7 @@ export const Stats = withContext(props => {
   const {context: {debug}, className = "", ...rest} = props;
   return <div className={classMap("stats pane", className)} {...rest}>
     <h2>Stats</h2>
-    <div>Version: a1.0.0</div>
+    <div>Version: a1.0.1</div>
     <div>Debug: {debug.toString()}</div>
   </div>;
 });

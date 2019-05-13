@@ -88,7 +88,7 @@ class Game extends Component {
               // v.a += (this.activeKeys.has("KeyA") ? -1 : 1) * 1.5;
           }
 
-          if (x) {
+          if (Math.sign(x) === Math.sign(v.l) || (v.l === 0 && x)) {
             v.l += x * friction;
           } else {
             if (Math.abs(v.l) > 0.2 * friction) v.l -= 0.2 * Math.sign(v.l) * friction;
