@@ -1,11 +1,12 @@
 import React, {Component} from "react";
 import "../Style/Game.scss";
-import {classMap, framerate, imageSize, MDeg, playerSize} from "../utils";
-import playerSprite from "../Style/Assets/player.svg";
+import {classMap, framerate, MDeg, playerSize} from "../utils";
 import {withContext} from "./Context";
 
 class Game extends Component {
   activeKeys = new Set();
+
+  data = {tracks: [], cars: []};
 
   playerVector = {a: 0, l: 0};
   gamepadState = undefined;
@@ -18,27 +19,31 @@ class Game extends Component {
 
   //region Component Events
   componentDidMount() {
+    this.props.setCallback(this._componentDidMount);
+  }
+
+  _componentDidMount = () => {
+    this.data = this.props.context.data;
     document.addEventListener("keydown", this.keyEvent);
     document.addEventListener("keyup", this.keyEvent);
     window.addEventListener("gamepadconnected", this.gamePadEvent);
     window.addEventListener("gamepaddisconnected", this.gamePadEvent);
-    if (this.props.track) this.initPlayer();
-  }
+    this.initPlayer();
+    this.props.setCallback(this.initPlayer);
+  };
+
   componentWillUnmount() {
     document.removeEventListener("keydown", this.keyEvent);
     document.removeEventListener("keyup", this.keyEvent);
     window.removeEventListener("gamepadconnected", this.gamePadEvent);
     window.removeEventListener("gamepaddisconnected", this.gamePadEvent);
   }
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (!prevProps.track && this.props.track) this.initPlayer();
-  }
   //endregion
 
   initPlayer = () => {
-    if (!this.props.track) return;
-    this.setState({player: {...this.props.track.data.startPos}, paused: false}, this.frame);
-    // this.playerVector.a = a;
+    if (this.props.context.track === undefined || !this.data.tracks[this.props.context.track]) return;
+    this.setState({player: {...this.data.tracks[this.props.context.track].startPos}, paused: false}, this.frame);
+    this.playerVector = {a: 0, l: 0};
   };
 
   keyEvent = e => {
@@ -58,15 +63,15 @@ class Game extends Component {
   };
 
   frame = () => {
-    if (this.state.paused) return;
+    if (this.state.paused || new Date() - this.lastTimeout < 500.0 / framerate) return;
     this.setState(s => {
       const {player, gamepad} = s;
-      const {data: {method = -1, friction = 1, size, scale = 1}} = this.props.track;
+      const {method = -1, friction = 1, size, scale = 1} = this.data.tracks[this.props.context.track];
       const v = this.playerVector;
       switch (method) {
         case 0:
           let x, y;
-          if (this.props.gamepad && gamepad > 0 && (this.gamepadState = navigator.getGamepads()[0])) {
+          if (this.props.context.gamepad && gamepad > 0 && (this.gamepadState = navigator.getGamepads()[0])) {
             // this.gamepadState = navigator.getGamepads()[0]; // TODO: check if this actually works
             let {axes: [x1], buttons: [,,,,,, {value: lt}, {value: rt}]} = this.gamepadState;
             if (Math.abs(x1) < 0.1) x1 = 0; if (Math.abs(x1) > 0.9) x1 = Math.sign(x1);
@@ -84,7 +89,7 @@ class Game extends Component {
           }
 
           if (x) {
-            v.l += x;
+            v.l += x * friction;
           } else {
             if (Math.abs(v.l) > 0.2 * friction) v.l -= 0.2 * Math.sign(v.l) * friction;
             else v.l = 0;
@@ -110,9 +115,9 @@ class Game extends Component {
             {x:  x2, y:  y2}, // fl,
             {x: -x1, y: -y1}, // bl
             {x: -x2, y: -y2}, // fr
-          ])((([x, y]) => [
-            [-x + y / 2, y + x / 2],
-            [ x + y / 2,-y + x / 2]
+          ])((([x0, y0]) => [
+            [-x0 + y0 / 2, y0 + x0 / 2],
+            [ x0 + y0 / 2,-y0 + x0 / 2]
           ])([
             playerSize.w / 2 * scale * MDeg.cos(player.a),
             playerSize.w / 2 * scale * MDeg.cos(player.a + 90)
@@ -136,17 +141,21 @@ class Game extends Component {
           return {};
       }
     });
+    this.lastTimeout = new Date();
     setTimeout(this.frame, 1000 / framerate);
   };
 
   render() {
-    const {track, className, gamepad, context: {debug}, ...rest} = this.props;
+    const {context: {debug, track: track_i, car: car_i}, setCallback, className = "", ...rest} = this.props;
+    const {tracks = [], cars = []} = this.data;
+    const track = tracks[track_i], car = cars[car_i];
     return <div className={classMap("pane pane-center game", className)} {...rest}>
       {(() => {
         if (!track) return "No track selected";
-        switch ((track.data || {}).method) {
+        switch ((track || {}).method) {
           case 0:
-            const {data: {size, scale = 1, walls, startLine}} = track;
+            const {size, scale = 1, walls, startLine} = track;
+            const {imageSize, playerSize} = car;
             const {player} = this.state;
             const ps = (([[x1, y1], [x2, y2]]) => [
               {x:  x1, y:  y1}, // br
@@ -179,7 +188,7 @@ class Game extends Component {
               {debug ? <line x2={this.playerVector.l*10*scale} stroke="yellow" strokeWidth={scale} transform={`translate(${player.x} ${player.y}) rotate(${player.a}) rotate(${this.playerVector.a})`}/> : undefined}
               {gamepad}
               <image
-                x={-imageSize.w /2 *scale} y={-imageSize.h /2 *scale} height={imageSize.h * scale} xlinkHref={playerSprite}
+                x={-imageSize.w /2 *scale} y={-imageSize.h /2 *scale} height={imageSize.h * scale} xlinkHref={`assets/${car.model}`}
                 transform={`translate(${player.x} ${player.y}) rotate(${player.a})`}
               />
               {debug ? <g transform={`translate(${player.x} ${player.y})`} fill="red">

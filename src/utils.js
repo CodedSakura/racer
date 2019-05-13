@@ -17,7 +17,7 @@ export const MDeg = {
   tan: i => Math.tan(rad(i))
 };
 
-export const trackFile = "tracks.json";
+export const trackFile = "data.json";
 
 export const framerate = 30;
 export const playerSize = {w: 14.0 * 1.5, h: 8.0 * 1.5};

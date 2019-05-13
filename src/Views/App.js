@@ -8,16 +8,15 @@ import {Context} from "../Components/Context";
 class App extends Component {
   state = {
     gridSize: undefined, big: undefined,
-    tracks: [], track: 0,
+    data: {}, track: 0, car: 0,
     gamepad: true,
-    debug: debug
+    debug: debug,
+    callback: () => {}
   };
 
   componentWillMount() {
     this.resizeEvent();
-    fetch(trackFile).then(r => r.json()).then(t => {
-      this.setState({tracks: t});
-    });
+    fetch(trackFile).then(r => r.json()).then(t => this.setState({data: t}, this.state.callback));
   }
 
   componentDidMount() {
@@ -43,10 +42,10 @@ class App extends Component {
     return <Context.Provider value={this.state}>
       <div className={classMap("main container", this.state.big && "mobile")}>
         <div className="pane pane-left container cont-col fill">
-          <Tracks tracks={this.state.tracks} setTrack={n => this.setState({track: n})}/>
-          <Cars/>
+          <Tracks setTrack={n => this.setState({track: n}, this.state.callback)}/>
+          <Cars setCar={n => this.setState({car: n})}/>
         </div>
-        <Game track={this.state.tracks[this.state.track]} gamepad={this.state.gamepad}/>
+        <Game setCallback={f => this.setState({callback : f}, this.state.callback)}/>
         <div className="pane pane-right container cont-col fill">
           <Stats/>
           <Options
