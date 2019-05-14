@@ -20,7 +20,5 @@ export const MDeg = {
 export const trackFile = "data.json";
 
 export const framerate = 30;
-export const playerSize = {w: 14.0 * 1.5, h: 8.0 * 1.5};
-export const imageSize  = {w: 16.0 * 1.5, h: 10.0 * 1.5};
 
 export const debug = process.env.NODE_ENV === "development";

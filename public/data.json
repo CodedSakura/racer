@@ -1,15 +1,14 @@
 {
   "tracks": [
     {
-      "name": "The 1st one",
-      "description": "This is the 1st track I made for this game",
+      "name": "Track #1",
+      "description": "A beginner track",
       "friction": 1,
       "size": {
         "x": 90,
         "y": 90
       },
       "scale": 0.25,
-      "method": 0,
       "walls": [
         {
           "x1": 0,
@@ -73,15 +72,14 @@
       }
     },
     {
-      "name": "Perhaps a track?",
-      "description": "Unfinished second track",
+      "name": "Lap",
+      "description": "A circular lap track",
       "friction": 0.1,
       "size": {
         "x": 400,
         "y": 200
       },
       "scale": 1,
-      "method": 0,
       "walls": [
         {
           "x1": 0,
@@ -171,11 +169,11 @@
       "playerSize": {"w": 21.0, "h": 12.0},
       "imageSize":  {"w": 24.0, "h": 15.0},
       "steering": 1,
-      "tankSteering": false,
       "maxSteering": 1,
-      "acceleration": 1,
+      "tankSteering": false,
+      "acceleration": {"+": 1, "-": 0.75},
+      "maxSpeed": {"+": 1, "-": 0.75},
       "braking": 1,
-      "maxSpeed": 1,
       "weight": 1,
       "grip": 1
     }
