@@ -18,7 +18,8 @@
 .pane-right { border-left: $border; }
 
 .tracks, .cars {
-  //overflow-y: hidden;
+  //overflow-y: auto;
+  //overflow-x: visible;
   max-height: 50%;
 }
 
@@ -39,9 +40,30 @@
         display: block;
         z-index: 10;
       }
+      &.selected::after {
+        //border-bottom-color: rgba(red, .8);
+        border-right-color: rgba(red, .8);
+      }
     }
     &:active {
       background-color: rgba($primary, .35);
+      &.selected::after {
+        //border-bottom: solid 6px rgba(red, .7);
+        border-right-color: rgba(red, .7);
+      }
+    }
+    &.selected::after {
+      content: '';
+      position: absolute;
+      display: block;
+      right: 0;
+      bottom: 0;
+      height: 0;
+      width: 0;
+      border-bottom: solid 13px transparent;
+      border-right: solid 13px red;
+      border-left: solid 13px transparent;
+      border-top: solid 13px transparent;
     }
     .align-right {
       float: right;

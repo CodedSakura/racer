@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import "../Style/Game.scss";
-import {classMap, framerate, MDeg} from "../utils";
+import {classMap, doIntersect, framerate, MDeg} from "../utils";
 import {withContext} from "./Context";
 
 class Game extends Component {
@@ -8,7 +8,7 @@ class Game extends Component {
 
   data = {track: [], car: []};
 
-  playerVector = {a: 0, l: 0};
+  playerVector = {speed: {a: 0, l: 0}, drift: {a: 0, l: 0}, inertia: {a: 0, l: 0}};
   gamepadState = undefined;
 
   state = {
@@ -45,7 +45,7 @@ class Game extends Component {
     if (track_i === undefined || !tracks[track_i]) return;
     this.data = {track: tracks[track_i], car: cars[car_i]};
     this.setState({player: {...this.data.track.startPos}, paused: false}, this.frame);
-    this.playerVector = {a: 0, l: 0};
+    this.playerVector.speed = {a: 0, l: 0};
   };
 
   keyEvent = e => {
@@ -67,47 +67,53 @@ class Game extends Component {
   frame = () => {
     if (this.state.paused || new Date() - this.lastTimeout < 500.0 / framerate) return;
     this.setState(s => {
-      const {player, gamepad} = s;
-      const {track: {friction = 1, size, scale = 1}, car: {playerSize = {w: 0, y: 0}}} = this.data;
-      const v = this.playerVector;
+      let {player, gamepad} = s;
+      const {
+        track: {friction = 1, size, scale = 1, walls = []},
+        car: {playerSize = {w: 0, y: 0}, braking = 1, tankSteering = false, steering = 1, acceleration = {f: 1, b: 1}, weight, grip}
+      } = this.data;
+      const {speed} = this.playerVector;
       let x, y;
       if (this.props.context.gamepad && gamepad > 0 && (this.gamepadState = navigator.getGamepads()[0])) {
         let {axes: [x1], buttons: [,,,,,, {value: lt}, {value: rt}]} = this.gamepadState;
         if (Math.abs(x1) < 0.1) x1 = 0; if (Math.abs(x1) > 0.9) x1 = Math.sign(x1);
-        // v.l -= 0.1 * (lt - rt);
-        x = 0.1 * (rt - lt);
-        // v.a += x1 * 1.5;
+        // speed.l -= 0.1 * (lt - rt);
+        x = (rt - lt) * 0.1;
+        // speed.a += x1 * 1.5;
         y = x1 * 1.5;
       } else if (this.activeKeys.size > 0) {
         if (["KeyW", "KeyS"].some(v => this.activeKeys.has(v)))
-          // v.l += (this.activeKeys.has("KeyS") ? -0.75 : 1) * 0.1;
-          x = (this.activeKeys.has("KeyS") ? -0.75 : 1) * 0.1;
+          // speed.l += (this.activeKeys.has("KeyS") ? -0.75 : 1) * 0.1;
+          x = (this.activeKeys.has("KeyS") ? -1 : 1) * 0.1;
         if (["KeyD", "KeyA"].some(v => this.activeKeys.has(v)))
           y = (this.activeKeys.has("KeyA") ? -1 : 1) * 1.5;
-          // v.a += (this.activeKeys.has("KeyA") ? -1 : 1) * 1.5;
+          // speed.a += (this.activeKeys.has("KeyA") ? -1 : 1) * 1.5;
       }
 
-      if (Math.sign(x) === Math.sign(v.l) || (v.l === 0 && x)) {
-        v.l += x * friction;
+      if (x) {
+        if (speed.l === 0 || Math.sign(speed.l) === Math.sign(x)) speed.l += x * friction * acceleration[Math.sign(x) > 0 ? "f" : "b"] * grip / weight;
+        else speed.l += x * friction * braking * grip / weight * 2.5;
       } else {
-        if (Math.abs(v.l) > 0.2 * friction) v.l -= 0.2 * Math.sign(v.l) * friction;
-        else v.l = 0;
+        if (Math.abs(speed.l) > friction * 0.2) speed.l -= Math.sign(speed.l) * friction / weight * 0.2;
+        else speed.l = 0;
       }
 
       if (y) {
-        v.a += y;
+        speed.a += y;
       } else {
-        if (Math.abs(v.a) > 0.75 * friction) v.a -= 0.75 * Math.sign(v.a) * friction;
-        else v.a = 0;
+        if (Math.abs(speed.a) > 0.75 * friction) speed.a -= 0.75 * Math.sign(speed.a) * friction;
+        else speed.a = 0;
       }
 
 
-      v.l = Math.max(-5, Math.min(7.5, v.l));
-      v.a = Math.max(-10, Math.min(10, v.a));
+      speed.l = Math.max(-5, Math.min(7.5, speed.l));
+      speed.a = Math.max(-10, Math.min(10, speed.a));
 
-      player.a += v.a;
-      player.x += MDeg.cos(player.a) * v.l * scale;
-      player.y += MDeg.sin(player.a) * v.l * scale;
+      const saveState = {...player};
+
+      player.a += (tankSteering ? 1 : Math.sqrt(Math.abs(speed.l) / 10)) * speed.a * steering;
+      player.x += MDeg.cos(player.a) * speed.l * scale;
+      player.y += MDeg.sin(player.a) * speed.l * scale;
 
       const ps = (([[x1, y1], [x2, y2]]) => [
         {x:  x1, y:  y1}, // br
@@ -126,10 +132,26 @@ class Game extends Component {
           player.x + pv.x > size.x || player.x - pv.x < 0 ||
           player.y + pv.y > size.y || player.y - pv.y < 0
         ) {
-          v.l = -v.l * .25;
+          speed.l *= -.25;
           player.x = Math.max(pv.x, Math.min(size.x - pv.x, player.x));
           player.y = Math.max(pv.y, Math.min(size.y - pv.y, player.y));
           break;
+        }
+      }
+      const sides = JSON.parse(JSON.stringify([[ps[0], ps[1]], [ps[1], ps[2]], [ps[2], ps[3]], [ps[3], ps[0]]]));
+      for (let i = 0; i < sides.length; i++) {
+        sides[i][0].x += player.x;
+        sides[i][0].y += player.y;
+        sides[i][1].x += player.x;
+        sides[i][1].y += player.y;
+      }
+      outer: for (const wall of walls) {
+        for (const side of sides) {
+          if (doIntersect({x: wall.x1, y: wall.y1}, {x: wall.x2, y: wall.y2}, ...side)) {
+            player = saveState;
+            speed.l *= -.25;
+            break outer;
+          }
         }
       }
 
@@ -160,6 +182,7 @@ class Game extends Component {
           playerSize.w / 2 * scale * MDeg.cos(player.a),
           playerSize.w / 2 * scale * MDeg.cos(player.a + 90)
         ]));
+        const sides = JSON.parse(JSON.stringify([[ps[0], ps[1]], [ps[1], ps[2]], [ps[2], ps[3]], [ps[3], ps[0]]]));
         const gamepad = (() => {
           if (!debug || this.state.gamepad === 0 || !this.props.gamepad || !this.gamepadState) return undefined;
           const {axes: [x1 = 0, y1 = 0, x2 = 0, y2 = 0] = [], buttons = []} = this.gamepadState;
@@ -174,19 +197,22 @@ class Game extends Component {
         return <svg viewBox={`${-scale} ${-scale} ${size.x + 2 * scale} ${size.y + 2 * scale}`}>
           <rect width="100%" height="100%" fill="rgba(255,255,255,0.2)"/>
           <line {...startLine} stroke="green" strokeWidth={2 * scale}/>
-          {debug ? <line x2={this.playerVector.l*10*scale} stroke="yellow" strokeWidth={scale} transform={`translate(${player.x} ${player.y}) rotate(${player.a}) rotate(${this.playerVector.a})`}/> : undefined}
+          {debug ? <line x2={this.playerVector.speed.l*10*scale} stroke="yellow" strokeWidth={scale} transform={`translate(${player.x} ${player.y}) rotate(${player.a}) rotate(${this.playerVector.speed.a})`}/> : undefined}
           {gamepad}
           <image
             x={-imageSize.w /2 *scale} y={-imageSize.h /2 *scale} height={imageSize.h * scale} xlinkHref={`assets/${car.model}`}
             transform={`translate(${player.x} ${player.y}) rotate(${player.a})`}
           />
+          {debug ? <g transform={`translate(${player.x} ${player.y})`} stroke="green" strokeWidth={scale}>
+            {sides.map((v, k) => <line key={k} x1={v[0].x} y1={v[0].y} x2={v[1].x} y2={v[1].y}/>)}
+          </g> : undefined}
           {debug ? <g transform={`translate(${player.x} ${player.y})`} fill="red">
             <circle r={scale} cx={ps[0].x} cy={ps[0].y} fill={"#FF00FF"}/>
             <circle r={scale} cx={ps[1].x} cy={ps[1].y} fill={"#FF0000"}/>
             <circle r={scale} cx={ps[2].x} cy={ps[2].y} fill={"#FFFF00"}/>
             <circle r={scale} cx={ps[3].x} cy={ps[3].y} fill={"#00FF00"}/>
           </g> : undefined}
-          {walls.map((v, k) => <line key={k} {...v} stroke="white" strokeWidth={2 * scale}/>)}
+          {walls.map((v, k) => <line key={k} {...v} stroke="white" strokeWidth={2 * scale} strokeLinecap="round"/>)}
         </svg>;
       })()}
     </div>;

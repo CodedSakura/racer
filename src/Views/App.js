@@ -43,7 +43,7 @@ class App extends Component {
       <div className={classMap("main container", this.state.big && "mobile")}>
         <div className="pane pane-left container cont-col fill">
           <Tracks setTrack={n => this.setState({track: n}, this.state.callback)}/>
-          <Cars setCar={n => this.setState({car: n})}/>
+          <Cars setCar={n => this.setState({car: n}, this.state.callback)}/>
         </div>
         <Game setCallback={f => this.setState({callback : f}, this.state.callback)}/>
         <div className="pane pane-right container cont-col fill">
