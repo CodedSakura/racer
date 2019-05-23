@@ -51,7 +51,7 @@ export const Stats = withContext(props => {
   const {context: {debug}, className = "", ...rest} = props;
   return <div className={classMap("stats pane", className)} {...rest}>
     <h2>Stats</h2>
-    <div>Version: a1.0.1</div>
+    <div>Version: a1.0.4</div>
     <div>Debug: {debug.toString()}</div>
   </div>;
 });

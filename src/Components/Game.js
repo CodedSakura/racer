@@ -77,17 +77,11 @@ class Game extends Component {
       if (this.props.context.gamepad && gamepad > 0 && (this.gamepadState = navigator.getGamepads()[0])) {
         let {axes: [x1], buttons: [,,,,,, {value: lt}, {value: rt}]} = this.gamepadState;
         if (Math.abs(x1) < 0.1) x1 = 0; if (Math.abs(x1) > 0.9) x1 = Math.sign(x1);
-        // speed.l -= 0.1 * (lt - rt);
         x = (rt - lt) * 0.1;
-        // speed.a += x1 * 1.5;
         y = x1 * 1.5;
       } else if (this.activeKeys.size > 0) {
-        if (["KeyW", "KeyS"].some(v => this.activeKeys.has(v)))
-          // speed.l += (this.activeKeys.has("KeyS") ? -0.75 : 1) * 0.1;
-          x = (this.activeKeys.has("KeyS") ? -1 : 1) * 0.1;
-        if (["KeyD", "KeyA"].some(v => this.activeKeys.has(v)))
-          y = (this.activeKeys.has("KeyA") ? -1 : 1) * 1.5;
-          // speed.a += (this.activeKeys.has("KeyA") ? -1 : 1) * 1.5;
+        x = (this.activeKeys.has("KeyW") - this.activeKeys.has("KeyS")) * .1;
+        y = (this.activeKeys.has("KeyD") - this.activeKeys.has("KeyA")) * 1.5;
       }
 
       if (x) {
@@ -138,13 +132,10 @@ class Game extends Component {
           break;
         }
       }
-      const sides = JSON.parse(JSON.stringify([[ps[0], ps[1]], [ps[1], ps[2]], [ps[2], ps[3]], [ps[3], ps[0]]]));
-      for (let i = 0; i < sides.length; i++) {
-        sides[i][0].x += player.x;
-        sides[i][0].y += player.y;
-        sides[i][1].x += player.x;
-        sides[i][1].y += player.y;
-      }
+
+      for (let i = 0; i < ps.length; i++) { ps[i].x += player.x; ps[i].y += player.y; }
+      const sides = [];
+      for (let i = 0; i < 4; i++) sides[i] = [ps[i], ps[(i + 1) % 4]];
       outer: for (const wall of walls) {
         for (const side of sides) {
           if (doIntersect({x: wall.x1, y: wall.y1}, {x: wall.x2, y: wall.y2}, ...side)) {
@@ -182,7 +173,7 @@ class Game extends Component {
           playerSize.w / 2 * scale * MDeg.cos(player.a),
           playerSize.w / 2 * scale * MDeg.cos(player.a + 90)
         ]));
-        const sides = JSON.parse(JSON.stringify([[ps[0], ps[1]], [ps[1], ps[2]], [ps[2], ps[3]], [ps[3], ps[0]]]));
+        const sides = [[ps[0], ps[1]], [ps[1], ps[2]], [ps[2], ps[3]], [ps[3], ps[0]]];
         const gamepad = (() => {
           if (!debug || this.state.gamepad === 0 || !this.props.gamepad || !this.gamepadState) return undefined;
           const {axes: [x1 = 0, y1 = 0, x2 = 0, y2 = 0] = [], buttons = []} = this.gamepadState;
